@@ -11,10 +11,16 @@
   font-weight: 600;
 }
 
+.courseGrid {
+  margin-top: 1.5rem;
+}
+
 .courseCard {
   margin-bottom: 1rem;
   transition: all 0.3s ease;
   overflow: hidden;
+  cursor: pointer;
+  height: 100%;
 }
 
 .courseCard:hover {
@@ -22,19 +28,26 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.courseCardContent {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.courseCardHeader {
+  margin-bottom: 1rem;
+}
+
 .courseHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  cursor: pointer;
   background-color: var(--mantine-color-teal-0);
   border-radius: var(--mantine-radius-md);
   border: 1px solid var(--mantine-color-teal-3);
-}
-
-.courseHeader:hover {
-  background-color: var(--mantine-color-teal-1);
+  margin-bottom: 1.5rem;
 }
 
 .courseTitle {
@@ -51,6 +64,8 @@
   background-color: var(--mantine-color-gray-1);
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
+  margin-top: 0.5rem;
+  align-self: flex-start;
 }
 
 .tableContainer {
@@ -96,6 +111,32 @@
 .modalTitle {
   color: var(--mantine-color-teal-7);
   font-weight: 600;
+}
+
+.headerContainer {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+}
+
+.backButton {
+  align-self: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.breadcrumbs {
+  margin-bottom: 1rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem;
+  color: var(--mantine-color-gray-6);
+  font-size: 1.1rem;
+}
+
+.searchContainer {
+  margin-bottom: 1.5rem;
 }
 
 .modalSection {

@@ -9,24 +9,25 @@ import {
   Table,
   Modal,
   Button,
-  Collapse,
   TextInput,
   Divider,
   Stack,
   Box,
   ScrollArea,
   LoadingOverlay,
-  Notification
+  Notification,
+  SimpleGrid
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconChevronDown, IconChevronUp, IconEdit, IconTrash, IconSearch, IconSchool, IconUser } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconSearch, IconSchool, IconUser, IconArrowRight } from '@tabler/icons-react';
 import classes from '../css/StudentInfo.module.css';
 import AuthContext from '../Context/AuthContext';
+import CourseStudentsPage from './CourseStudentsPage';
 
 function StudentInfo() {
   const [students, setStudents] = useState([]);
   const [courseGroups, setCourseGroups] = useState({});
-  const [expandedCourses, setExpandedCourses] = useState(new Set());
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
@@ -98,15 +99,14 @@ function StudentInfo() {
     fetchStudents();
   }, [authTok]);
 
-  // Toggle course expansion
-  const toggleCourse = (course) => {
-    const newExpanded = new Set(expandedCourses);
-    if (newExpanded.has(course)) {
-      newExpanded.delete(course);
-    } else {
-      newExpanded.add(course);
-    }
-    setExpandedCourses(newExpanded);
+  // Navigate to course students page
+  const viewCourseStudents = (course) => {
+    setSelectedCourse(course);
+  };
+  
+  // Go back to courses view
+  const goBackToCourses = () => {
+    setSelectedCourse(null);
   };
 
   // View student details
@@ -167,18 +167,27 @@ function StudentInfo() {
     }
   };
 
-  // Filter students based on search query
+  // Filter courses based on search query
   const filteredCourseGroups = Object.entries(courseGroups).reduce((acc, [course, students]) => {
+    // Check if course name matches search query
+    const courseLower = course.toLowerCase();
+    const searchLower = searchQuery.toLowerCase();
+    
+    if (courseLower.includes(searchLower)) {
+      acc[course] = students;
+      return acc;
+    }
+    
+    // Check if any student in the course matches search query
     const filteredStudents = students.filter(student => {
       const fullName = `${student.firstName} ${student.middleInitial} ${student.lastName}`.toLowerCase();
       const studentCode = student.studentCode.toLowerCase();
-      const searchLower = searchQuery.toLowerCase();
       
       return fullName.includes(searchLower) || studentCode.includes(searchLower);
     });
     
     if (filteredStudents.length > 0) {
-      acc[course] = filteredStudents;
+      acc[course] = students; // Keep all students in the course if any match
     }
     
     return acc;
@@ -198,104 +207,71 @@ function StudentInfo() {
         </Notification>
       )}
       
-      <Title order={2} className={classes.title}>Student Information</Title>
-      
-      <div className={classes.searchContainer}>
-        <TextInput
-          icon={<IconSearch size={16} />}
-          placeholder="Search by name or student code"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.currentTarget.value)}
-          radius="md"
-          size="md"
+      {selectedCourse ? (
+        <CourseStudentsPage 
+          course={selectedCourse} 
+          onBack={goBackToCourses} 
+          students={courseGroups[selectedCourse]} 
         />
-      </div>
-      
-      {Object.keys(filteredCourseGroups).length === 0 ? (
-        <Text className={classes.emptyState}>
-          {loading ? 'Loading students...' : 'No students found matching your search criteria.'}
-        </Text>
       ) : (
-        Object.entries(filteredCourseGroups).map(([course, students]) => (
-          <Paper key={course} className={classes.courseCard} shadow="sm" radius="md" withBorder>
-            <div 
-              className={classes.courseHeader}
-              onClick={() => toggleCourse(course)}
-            >
-              <div className={classes.courseTitle}>
-                <IconSchool size={20} />
-                {course}
-              </div>
-              <Group spacing="md">
-                <Badge className={classes.studentCount}>
-                  {students.length} {students.length === 1 ? 'Student' : 'Students'}
-                </Badge>
-                {expandedCourses.has(course) ? (
-                  <IconChevronUp size={20} />
-                ) : (
-                  <IconChevronDown size={20} />
-                )}
-              </Group>
-            </div>
-            
-            <Collapse in={expandedCourses.has(course)}>
-              <div className={classes.tableContainer}>
-                <ScrollArea>
-                  <Table striped highlightOnHover>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Student Code</Table.Th>
-                        <Table.Th>Name</Table.Th>
-                        <Table.Th>Year Level</Table.Th>
-                        <Table.Th>Email</Table.Th>
-                        <Table.Th>Actions</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {students.map((student) => (
-                        <Table.Tr 
-                          key={student.id} 
-                          className={classes.studentRow}
-                          onClick={() => viewStudentDetails(student)}
-                        >
-                          <Table.Td>{student.studentCode}</Table.Td>
-                          <Table.Td>
-                            {student.firstName} {student.middleInitial} {student.lastName}
-                          </Table.Td>
-                          <Table.Td>{student.year_level}</Table.Td>
-                          <Table.Td>{student.email}</Table.Td>
-                          <Table.Td>
-                            <Group spacing="xs" onClick={(e) => e.stopPropagation()}>
-                              <ActionIcon 
-                                className={`${classes.actionButton} ${classes.editButton}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  viewStudentDetails(student);
-                                }}
-                              >
-                                <IconEdit size={16} />
-                              </ActionIcon>
-                              <ActionIcon 
-                                className={`${classes.actionButton} ${classes.deleteButton}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedStudent(student);
-                                  setDeleteModalOpened(true);
-                                }}
-                              >
-                                <IconTrash size={16} />
-                              </ActionIcon>
-                            </Group>
-                          </Table.Td>
-                        </Table.Tr>
-                      ))}
-                    </Table.Tbody>
-                  </Table>
-                </ScrollArea>
-              </div>
-            </Collapse>
-          </Paper>
-        ))
+        <>
+          <Title order={2} className={classes.title}>Student Information</Title>
+          
+          <div className={classes.searchContainer}>
+            <TextInput
+              icon={<IconSearch size={16} />}
+              placeholder="Search by course, name or student code"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.currentTarget.value)}
+              radius="md"
+              size="md"
+            />
+          </div>
+          
+          {Object.keys(filteredCourseGroups).length === 0 ? (
+            <Text className={classes.emptyState}>
+              {loading ? 'Loading courses...' : 'No courses found matching your search criteria.'}
+            </Text>
+          ) : (
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg" className={classes.courseGrid}>
+              {Object.entries(filteredCourseGroups).map(([course, students]) => (
+                <Paper 
+                  key={course} 
+                  className={classes.courseCard} 
+                  shadow="sm" 
+                  radius="md" 
+                  withBorder
+                  onClick={() => viewCourseStudents(course)}
+                >
+                  <div className={classes.courseCardContent}>
+                    <Group className={classes.courseCardHeader}>
+                      <IconSchool size={24} />
+                      <Title order={3} className={classes.courseTitle}>{course}</Title>
+                    </Group>
+                    
+                    <Badge size="lg" className={classes.studentCount}>
+                      {students.length} {students.length === 1 ? 'Student' : 'Students'}
+                    </Badge>
+                    
+                    <Group position="right" mt="md">
+                      <Button 
+                        rightSection={<IconArrowRight size={16} />}
+                        variant="light"
+                        color="teal"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          viewCourseStudents(course);
+                        }}
+                      >
+                        View Students
+                      </Button>
+                    </Group>
+                  </div>
+                </Paper>
+              ))}
+            </SimpleGrid>
+          )}
+        </>
       )}
       
       {/* Student Details Modal */}

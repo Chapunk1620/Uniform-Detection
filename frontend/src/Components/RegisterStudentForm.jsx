@@ -34,7 +34,7 @@ function RegisterStudentForm() {
       firstName: (value) => (value.length < 2 ? 'First name must have at least 2 letters' : null),
       lastName: (value) => (value.length < 2 ? 'Last name must have at least 2 letters' : null),
       studentCode: (value) => (value.length < 5 ? 'Student code must be at least 5 characters long' : null),
-      
+      course: (value) => (value ? null : 'Please select a course'),
       year_level: (value) => (/^[1-5]$/.test(value) ? null : 'Year level must be between 1-5'),
       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
       password: (value) =>
@@ -76,10 +76,10 @@ function RegisterStudentForm() {
       } else {
         console.log('Registration Failed:', data.message || 'An error occurred during registration');
       }
-      } catch (error) {
-        console.log('Error: Network error or server is not responding');
-      }
-};    
+    } catch (error) {
+      console.log('Error: Network error or server is not responding');
+    }
+  };
 
   return (
     <MantineProvider withGlobalStyles withNormalizeCSS theme={{ colorScheme: 'light', primaryColor: 'teal' }}>
@@ -146,20 +146,36 @@ function RegisterStudentForm() {
                     required
                     {...form.getInputProps('studentCode')}
                   />
-                  <TextInput
+
+                  <Select
                     label="Course"
-                    placeholder="Enter Student Course"
+                    placeholder="Select Course"
                     radius="md"
                     size="md"
                     required
+                    data={[
+                      { value: 'BSCS', label: 'BS Computer Science' },
+                      { value: 'BSIT', label: 'BS Information Technology' },
+                      { value: 'BSCpE', label: 'BS Computer Engineering' },
+                      { value: 'BSIS', label: 'BS Information Systems' },
+                      { value: 'BSECE', label: 'BS Electronics and Communications Engineering' },
+                    ]}
                     {...form.getInputProps('course')}
                   />
-                  <TextInput
+
+                  <Select
                     label="Year Level"
-                    placeholder="Enter Year Level"
+                    placeholder="Select Year Level"
                     radius="md"
                     size="md"
                     required
+                    data={[
+                      { value: '1', label: '1' },
+                      { value: '2', label: '2' },
+                      { value: '3', label: '3' },
+                      { value: '4', label: '4' },
+                      { value: '5', label: '5' },
+                    ]}
                     {...form.getInputProps('year_level')}
                   />
                 </Group>
@@ -186,8 +202,6 @@ function RegisterStudentForm() {
                 <Button type="submit" size="md" radius="md" fullWidth mt="xl">
                   Register
                 </Button>
-
-              
               </Stack>
             </form>
           </Paper>
