@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, StudentQR, StudentAttendance
+from .models import Student, StudentQR, StudentAttendance, StudentLogs
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -19,3 +19,9 @@ class StudentAttendanceAdmin(admin.ModelAdmin):
     search_fields = ('student__firstName', 'student__lastName', 'student__studentCode')
     list_filter = ('uniform', 'status', 'created')
     date_hierarchy = 'created'
+    
+@admin.register(StudentLogs)
+class StudentLogsAdmin(admin.ModelAdmin):
+    list_display = ('student', 'log_type', 'timestamp', 'created', 'updated')
+    list_filter = ('log_type', 'timestamp')
+    search_fields = ('student__name',)  # Adjust according to your Student model's fields

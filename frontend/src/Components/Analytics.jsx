@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Paper,
   Title,
@@ -28,86 +28,63 @@ import {
 
 const COLORS = ["#2ecc71", "#e74c3c", "#3498db", "#f1c40f", "#9b59b6"];
 
-const dailyData = [
-  { date: "2024-03-01", compliant: 85, nonCompliant: 15 },
-  { date: "2024-03-02", compliant: 30, nonCompliant: 70 },
-  { date: "2024-03-03", compliant: 88, nonCompliant: 12 },
-  { date: "2024-03-04", compliant: 40, nonCompliant: 60 },
-  { date: "2024-03-05", compliant: 87, nonCompliant: 13 },
-];
-
-const weeklyData = [
-  { week: "Week 1", compliant: 450, nonCompliant: 50 },
-  { week: "Week 2", compliant: 300, nonCompliant: 200 },
-  { week: "Week 3", compliant: 480, nonCompliant: 20 },
-  { week: "Week 4", compliant: 320, nonCompliant: 180 },
-];
-
-const monthlyData = [
-  { month: "Jan", compliant: 1800, nonCompliant: 200 },
-  { month: "Feb", compliant: 1300, nonCompliant: 700 },
-  { month: "Mar", compliant: 1900, nonCompliant: 100 },
-];
-
-const courseYearData = [
-  {
-    course: "BSIT",
-    years: [
-      { year: "1st Year", compliant: 25, nonCompliant: 5 },
-      { year: "2nd Year", compliant: 20, nonCompliant: 10 },
-      { year: "3rd Year", compliant: 30, nonCompliant: 0 },
-      { year: "4th Year", compliant: 20, nonCompliant: 5 },
-    ],
-  },
-  {
-    course: "BSCS",
-    years: [
-      { year: "1st Year", compliant: 22, nonCompliant: 3 },
-      { year: "2nd Year", compliant: 18, nonCompliant: 7 },
-      { year: "3rd Year", compliant: 30, nonCompliant: 2 },
-      { year: "4th Year", compliant: 18, nonCompliant: 8 },
-    ],
-  },
-  {
-    course: "BSIS",
-    years: [
-      { year: "1st Year", compliant: 15, nonCompliant: 5 },
-      { year: "2nd Year", compliant: 18, nonCompliant: 7 },
-      { year: "3rd Year", compliant: 22, nonCompliant: 3 },
-      { year: "4th Year", compliant: 15, nonCompliant: 10 },
-    ],
-  },
-  {
-    course: "BSCE",
-    years: [
-      { year: "1st Year", compliant: 12, nonCompliant: 3 },
-      { year: "2nd Year", compliant: 15, nonCompliant: 5 },
-      { year: "3rd Year", compliant: 20, nonCompliant: 2 },
-      { year: "4th Year", compliant: 13, nonCompliant: 10 },
-    ],
-  },
-];
-
 function Analytics() {
   const [timeFilter, setTimeFilter] = useState("daily");
   const [courseFilter, setCourseFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
 
-  // Data for trend graph by time only
+  // State to store the fetched data
+  const [fetchedData, setFetchedData] = useState({
+    daily: [],
+    weekly: [],
+    monthly: [],
+    courseYearData: [],
+  });
+
+  const fetchAnalytics = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/analytics/", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch analytics");
+      }
+      const data = await response.json();
+
+      // Make sure data keys exist and fallback to empty arrays if not
+      setFetchedData({
+        daily: data.daily || [],
+        weekly: data.weekly || [],
+        monthly: data.monthly || [],
+        courseYearData: data.courseYearData || [],
+      });
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      // Optionally set fallback data or handle error UI
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
+
+  // Use fetched data depending on timeFilter
   const getSelectedData = () => {
     switch (timeFilter) {
       case "weekly":
-        return weeklyData;
+        return fetchedData.weekly;
       case "monthly":
-        return monthlyData;
+        return fetchedData.monthly;
       default:
-        return dailyData;
+        return fetchedData.daily;
     }
   };
   const selectedData = getSelectedData();
 
   // Filter courseYearData by course and year filters
-  const filteredCourseYearData = courseYearData
+  const filteredCourseYearData = fetchedData.courseYearData
     .filter(
       (course) =>
         courseFilter === "all" ||
@@ -123,7 +100,7 @@ function Analytics() {
     }))
     .filter((course) => course.years.length > 0);
 
-  // Compute summary counts from filteredCourseYearData (ignore timeFilter since no time info in courseYearData)
+  // Compute summary counts from filteredCourseYearData
   const totalCompliant = filteredCourseYearData.reduce(
     (courseSum, course) =>
       courseSum +
@@ -253,15 +230,13 @@ function Analytics() {
                     }
                     tickFormatter={(tick) => {
                       if (timeFilter === "daily") {
-                        // parse date string and format
                         const date = new Date(tick);
                         return date.toLocaleDateString("en-US", {
                           month: "short",
                           day: "2-digit",
                           year: "numeric",
-                        }); // e.g. "Mar 01, 2024"
+                        });
                       }
-                      // For weekly and monthly just return the tick as is
                       return tick;
                     }}
                   />
@@ -298,6 +273,7 @@ function Analytics() {
               </ResponsiveContainer>
             </Paper>
           </Grid.Col>
+
           <Grid.Col span={6}>
             <Paper shadow="sm" p="xl" radius="md" withBorder>
               <Title order={3} mb="md">

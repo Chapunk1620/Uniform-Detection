@@ -21,6 +21,11 @@ import io
 
 from .utils import generate_and_save_qr_to_model, qr_scanner , uniform_scanner
 
+from django.db.models import Count, Q
+from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
+from django.http import JsonResponse
+from django.utils.dateparse import parse_datetime
+
 # Create your views here.
 
 
@@ -176,4 +181,167 @@ def student_logs(request):
     studentLogs = StudentLogs.objects.all()
     serializer = StudentLogsSerializer(studentLogs, many=True)
     return Response(serializer.data)
-    
+
+@api_view(['GET'])
+def compliance_data(request):
+    try:
+        # Daily aggregation
+        daily_qs = (
+            StudentLogs.objects
+            .annotate(day=TruncDay('timestamp'))
+            .values('day')
+            .annotate(
+                compliant=Count('id', filter=Q(log_type='CU')),
+                nonCompliant=Count('id', filter=Q(log_type='IU'))
+            )
+            .order_by('day')
+        )
+
+        daily = []
+        for d in daily_qs:
+            if d['day']:  # Check if day is not None
+                # Handle both timezone-aware and naive datetimes
+                day_date = d['day']
+                if hasattr(day_date, 'strftime'):
+                    date_str = day_date.strftime("%Y-%m-%d")
+                else:
+                    # If it's already a string, parse it first
+                    parsed_date = parse_datetime(str(day_date))
+                    if parsed_date:
+                        date_str = parsed_date.strftime("%Y-%m-%d")
+                    else:
+                        continue  # Skip invalid dates
+                
+                daily.append({
+                    "date": date_str,
+                    "compliant": d['compliant'],
+                    "nonCompliant": d['nonCompliant']
+                })
+
+        # Weekly aggregation
+        weekly_qs = (
+            StudentLogs.objects
+            .annotate(week=TruncWeek('timestamp'))
+            .values('week')
+            .annotate(
+                compliant=Count('id', filter=Q(log_type='CU')),
+                nonCompliant=Count('id', filter=Q(log_type='IU'))
+            )
+            .order_by('week')
+        )
+
+        weekly = []
+        for d in weekly_qs:
+            if d['week']:  # Check if week is not None
+                week_date = d['week']
+                if hasattr(week_date, 'strftime'):
+                    week_str = f"Week of {week_date.strftime('%Y-%m-%d')}"
+                else:
+                    parsed_date = parse_datetime(str(week_date))
+                    if parsed_date:
+                        week_str = f"Week of {parsed_date.strftime('%Y-%m-%d')}"
+                    else:
+                        continue
+                
+                weekly.append({
+                    "week": week_str,
+                    "compliant": d['compliant'],
+                    "nonCompliant": d['nonCompliant']
+                })
+
+        # Monthly aggregation
+        monthly_qs = (
+            StudentLogs.objects
+            .annotate(month=TruncMonth('timestamp'))
+            .values('month')
+            .annotate(
+                compliant=Count('id', filter=Q(log_type='CU')),
+                nonCompliant=Count('id', filter=Q(log_type='IU'))
+            )
+            .order_by('month')
+        )
+
+        monthly = []
+        for d in monthly_qs:
+            if d['month']:  # Check if month is not None
+                month_date = d['month']
+                if hasattr(month_date, 'strftime'):
+                    month_str = month_date.strftime('%B %Y')  # Added year for clarity
+                else:
+                    parsed_date = parse_datetime(str(month_date))
+                    if parsed_date:
+                        month_str = parsed_date.strftime('%B %Y')
+                    else:
+                        continue
+                
+                monthly.append({
+                    "month": month_str,
+                    "compliant": d['compliant'],
+                    "nonCompliant": d['nonCompliant']
+                })
+
+        # Course + Year aggregation
+        logs = (
+            StudentLogs.objects
+            .select_related('student__course')  # Optimize database queries
+            .values('student__course__name', 'student__year_level')
+            .annotate(
+                compliant=Count('id', filter=Q(log_type='CU')),
+                nonCompliant=Count('id', filter=Q(log_type='IU'))
+            )
+            .order_by('student__course__name', 'student__year_level')
+        )
+
+        course_map = {}
+        for entry in logs:
+            course = entry['student__course__name']
+            year = entry['student__year_level']
+
+            # Skip entries with missing data
+            if not course or not year:
+                continue
+
+            if course not in course_map:
+                course_map[course] = []
+
+            # Handle year suffixes more robustly
+            if year in [1, 21, 31, 41, 51, 61, 71, 81, 91]:
+                suffix = "st"
+            elif year in [2, 22, 32, 42, 52, 62, 72, 82, 92]:
+                suffix = "nd"
+            elif year in [3, 23, 33, 43, 53, 63, 73, 83, 93]:
+                suffix = "rd"
+            else:
+                suffix = "th"
+
+            course_map[course].append({
+                "year": f"{year}{suffix} Year",
+                "compliant": entry['compliant'],
+                "nonCompliant": entry['nonCompliant']
+            })
+
+        course_year_data = [
+            {
+                "course": course,
+                "years": year_data
+            }
+            for course, year_data in course_map.items()
+        ]
+
+        return JsonResponse({
+            "daily": daily,
+            "weekly": weekly,
+            "monthly": monthly,
+            "courseYearData": course_year_data
+        })
+
+    except Exception as e:
+        # Log the error in production
+        
+        return JsonResponse({
+            "error": "An error occurred while fetching compliance data",
+            "daily": [],
+            "weekly": [],
+            "monthly": [],
+            "courseYearData": []
+        }, status=500)
