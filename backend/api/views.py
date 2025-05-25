@@ -5,16 +5,17 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import UserSerializer, StudentSerializer
+from .serializers import UserSerializer, StudentSerializer, StudentLogsSerializer
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
-from .models import Student, StudentQR, StudentAttendance
+from .models import Student, StudentQR, StudentAttendance , StudentLogs
 from django.shortcuts import get_object_or_404
 import base64
 import cv2
 from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
 from django.conf import settings
+from rest_framework import status
 
 import io
 
@@ -72,22 +73,34 @@ class StudentView(ListCreateAPIView):
     serializer_class = StudentSerializer
 
     def get_queryset(self):
-        return Student.objects.all().order_by('-created', '-update')  
+        return Student.objects.all().order_by('-created', '-update')
+
+    def create(self, request, *args, **kwargs):
+        print("Incoming Data:", request.data)
+
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print("Validation Errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return self.perform_create(serializer)
 
     def perform_create(self, serializer):
-        fullName = serializer.validated_data['firstName'] + ' ' + serializer.validated_data['middleInitial'] + '. ' + serializer.validated_data['lastName']
+        validated = serializer.validated_data
+        fullName = f"{validated['firstName']} {validated['middleInitial']}. {validated['lastName']}"
+        
         user = User.objects.create_user(
-        username= fullName,
-        email=serializer.validated_data['email'],
-        password=serializer.validated_data['password']  
+            username=fullName,
+            email=validated['email'],
+            password=validated['password']
         )
-        Student = serializer.save(user=user)
-        instance = StudentQR.objects.create(student=Student)
-        generate_and_save_qr_to_model(Student.studentCode, instance, Student)
+        
+        student = serializer.save(user=user)
+        instance = StudentQR.objects.create(student=student)
+        generate_and_save_qr_to_model(student.studentCode, instance, student)
         instance.save()
-        
-        
-        return Response(serializer.data, status=201)
+
+        return Response(StudentSerializer(student).data, status=status.HTTP_201_CREATED)
         
 class StudentDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Student.objects.all()
@@ -156,4 +169,11 @@ def uniform_scanner_view(request,pk):
     jpg_as_text = base64.b64encode(buffer).decode('utf-8')
 
     return Response({'image': jpg_as_text, "detectedObjects": detectedObjects}, status=200)
+
+
+@api_view(['GET'])
+def student_logs(request):
+    studentLogs = StudentLogs.objects.all()
+    serializer = StudentLogsSerializer(studentLogs, many=True)
+    return Response(serializer.data)
     

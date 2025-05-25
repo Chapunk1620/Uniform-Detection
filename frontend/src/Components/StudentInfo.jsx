@@ -37,14 +37,12 @@ function StudentInfo() {
   
   const { authTok } = useContext(AuthContext);
 
-  // Fetch students data
-  useEffect(() => {
-    const fetchStudents = async () => {
+  const fetchStudents = async () => {
       try {
         setLoading(true);
         const response = await fetch('http://127.0.0.1:8000/api/students/', {
           headers: {
-            'Authorization': `Bearer ${authTok?.access}`,
+            
             'Content-Type': 'application/json'
           }
         });
@@ -54,11 +52,12 @@ function StudentInfo() {
         }
         
         const data = await response.json();
+        console.log(data)
         setStudents(data);
         
         // Group students by course
         const groupedByCourse = data.reduce((acc, student) => {
-          const course = student.course;
+          const course = student?.course?.name;
           if (!acc[course]) {
             acc[course] = [];
           }
@@ -69,7 +68,7 @@ function StudentInfo() {
         setCourseGroups(groupedByCourse);
       } catch (error) {
         console.error('Error fetching students:', error);
-        // Use dummy data for development/testing
+       
         const dummyData = [
           { id: 1, firstName: 'John', middleInitial: 'A', lastName: 'Doe', studentCode: '2023001', course: 'BSIT', year_level: '3', email: 'john.doe@example.com' },
           { id: 2, firstName: 'Jane', middleInitial: 'B', lastName: 'Smith', studentCode: '2023002', course: 'BSIT', year_level: '2', email: 'jane.smith@example.com' },
@@ -82,7 +81,7 @@ function StudentInfo() {
         
         // Group dummy data by course
         const groupedByCourse = dummyData.reduce((acc, student) => {
-          const course = student.course;
+          const course = student.course.name;
           if (!acc[course]) {
             acc[course] = [];
           }
@@ -95,9 +94,11 @@ function StudentInfo() {
         setLoading(false);
       }
     };
-    
+
+  // Fetch students data
+  useEffect(() => {
     fetchStudents();
-  }, [authTok]);
+  }, []);
 
   // Navigate to course students page
   const viewCourseStudents = (course) => {
@@ -120,10 +121,10 @@ function StudentInfo() {
     if (!selectedStudent) return;
     
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/students/${selectedStudent.id}/`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/student/${selectedStudent.id}/`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${authTok?.access}`,
+          
           'Content-Type': 'application/json'
         }
       });

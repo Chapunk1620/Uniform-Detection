@@ -66,10 +66,10 @@ function CourseStudentsPage({ course, onBack, students: initialStudents = [] }) 
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/students/${editableStudent.id}/`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/student/${editableStudent.id}/`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${authTok?.access}`,
+          
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(editableStudent)
@@ -97,10 +97,10 @@ function CourseStudentsPage({ course, onBack, students: initialStudents = [] }) 
     if (!selectedStudent) return;
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/students/${selectedStudent.id}/`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/student/${selectedStudent.id}/`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${authTok?.access}`,
+          
           'Content-Type': 'application/json'
         }
       });

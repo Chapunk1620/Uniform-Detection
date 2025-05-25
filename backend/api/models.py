@@ -14,7 +14,7 @@ class Student(models.Model):
     firstName = models.CharField(max_length=50)
     middleInitial = models.CharField(max_length=3)
     lastName = models.CharField(max_length=50)
-    studentCode = models.CharField(max_length=10)
+    studentCode = models.CharField()
     email = models.EmailField()
     password = models.CharField(max_length=20)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="students", null=True, blank=True)

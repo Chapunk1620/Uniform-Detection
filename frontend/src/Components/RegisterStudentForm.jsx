@@ -51,35 +51,40 @@ function RegisterStudentForm() {
   });
 
   const RegisterStudent = async (values) => {
-    try {
-      const formData = new FormData();
-      Object.entries(values).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
+  try {
+    const formData = new FormData();
 
-      let response = await fetch('http://127.0.0.1:8000/api/students/', {
-        method: 'POST',
-        body: formData,
-      });
+    // Safely append all values as strings
+    Object.entries(values).forEach(([key, value]) => {
+      formData.append(key, value ?? '');
+    });
 
-      let data = await response.json();
-
-      if (response.ok) {
-        setOpened(true);
-        form.reset();
-        console.log('Success: Registration successful!');
-        setTimeout(() => {
-          setOpened(false);
-          // loginUser(values); // Uncomment if defined
-          // nav('/'); // Uncomment if using useNavigate
-        }, 2000);
-      } else {
-        console.log('Registration Failed:', data.message || 'An error occurred during registration');
-      }
-    } catch (error) {
-      console.log('Error: Network error or server is not responding');
+    // Debug: show what's inside FormData
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
     }
-  };
+
+    const response = await fetch('http://127.0.0.1:8000/api/students/', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setOpened(true);
+      form.reset();
+      console.log('Success: Registration successful!');
+      setTimeout(() => {
+        setOpened(false);
+      }, 2000);
+    } else {
+      console.log('Registration Failed:', data.message || 'An error occurred during registration');
+    }
+  } catch (error) {
+    console.log('Error: Network error or server is not responding');
+  }
+};
 
   return (
     <MantineProvider withGlobalStyles withNormalizeCSS theme={{ colorScheme: 'light', primaryColor: 'teal' }}>
@@ -120,13 +125,16 @@ function RegisterStudentForm() {
                     required
                     {...form.getInputProps('firstName')}
                   />
+
                   <TextInput
                     label="Middle Initial"
                     placeholder="Enter Middle Initial"
                     radius="md"
                     size="md"
+                    maxLength={3}
                     {...form.getInputProps('middleInitial')}
                   />
+
                   <TextInput
                     label="Last Name"
                     placeholder="Enter Last Name"
@@ -154,13 +162,14 @@ function RegisterStudentForm() {
                     size="md"
                     required
                     data={[
-                      { value: 'BSCS', label: 'BS Computer Science' },
-                      { value: 'BSIT', label: 'BS Information Technology' },
-                      { value: 'BSCpE', label: 'BS Computer Engineering' },
-                      { value: 'BSIS', label: 'BS Information Systems' },
-                      { value: 'BSECE', label: 'BS Electronics and Communications Engineering' },
+                      { value: '4', label: 'BS Computer Science' },
+                      { value: '3', label: 'BS Information Technology' },
+                      { value: '2', label: 'BS Computer Engineering' },
+                      { value: '0', label: 'BS Information Systems' },
+                      { value: '1', label: 'BS Electronics and Communications Engineering' },
                     ]}
                     {...form.getInputProps('course')}
+                      onChange={(value) => form.setFieldValue('course', parseInt(value))}
                   />
 
                   <Select
@@ -177,13 +186,14 @@ function RegisterStudentForm() {
                       { value: '5', label: '5' },
                     ]}
                     {...form.getInputProps('year_level')}
+                    onChange={(value) => form.setFieldValue('year_level', parseInt(value))}
                   />
                 </Group>
 
                 <TextInput
                   label="Email"
                   type="email"
-                  placeholder="Enter User Email"
+                  placeholder="Enter Email"
                   radius="md"
                   size="md"
                   required

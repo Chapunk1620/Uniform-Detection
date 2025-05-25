@@ -15,6 +15,8 @@ urlpatterns = [
     path('student/<str:pk>/', views.StudentDetailView.as_view()),
     path('scan/qr', views.qr_scanner_view),
     path('scan/unif/<str:pk>/', views.uniform_scanner_view),
+    path('logs/', views.student_logs)
+    
   
 ]
 
