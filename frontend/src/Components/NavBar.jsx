@@ -25,6 +25,7 @@ function NavBar({ setPage }) {
     { label: "Home", value: "home" },
     { label: "Scan ID", value: "scanId" },
     { label: "Student Log", value: "status" },
+    { label: "Student Information", value: "studentInfo" },
     { label: "Register Student", value: "registerStudent" },
   ];
 

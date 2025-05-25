@@ -5,6 +5,7 @@ import ScanPage from "../Components/ScanPage";
 import Analytics from "../Components/Analytics";
 import ScanUniPage from "../Components/ScanUniPage";
 import UniformStatusPage from "../Components/UniformStatusPage";
+import StudentInfo from "../Components/StudentInfo";
 
 function AdminPage() {
   const [page, setPage] = useState("home");
@@ -16,8 +17,10 @@ function AdminPage() {
         <Analytics />
       ) : page === "scanId" ? (
         <ScanPage />
-      )  : page === "status" ? (
+      ) : page === "status" ? (
         <UniformStatusPage />
+      ) : page === "studentInfo" ? (
+        <StudentInfo />
       ) : page === "registerStudent" ? (
         <RegisterStudentForm />
       ) : (
