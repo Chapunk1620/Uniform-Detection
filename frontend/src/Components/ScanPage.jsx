@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 import Webcam from "react-webcam";
-import { Paper, Button, Title, Loader, Text } from "@mantine/core";
+import { Paper, Button, Title, Loader, Text, Switch } from "@mantine/core";
 // import { showNotification } from "@mantine/notifications";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import classes from "../css/Scanner.module.css";
@@ -14,6 +14,26 @@ function ScanPage({setPage}) {
     const [isWashDay, setIsWashDay] = useState(false);
 
     const washDayLog = async () => {
+
+        
+        if (webcamRef.current) {
+          const imageSrc = webcamRef.current.getScreenshot();
+          if (!imageSrc) {
+            
+            console.error("Failed to capture image from webcam.");
+            return;
+          }
+    
+          const byteCharacters = atob(imageSrc.split(",")[1]);
+          const byteNumbers = Array.from(byteCharacters, (char) =>
+            char.charCodeAt(0)
+          );
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: "image/png" });
+    
+          const formData = new FormData();
+          formData.append("image", blob, "snapshot.png");
+            
      
             const response = await fetch(
               "http://127.0.0.1:8000/api/scan/qr",
@@ -25,7 +45,7 @@ function ScanPage({setPage}) {
               success: true,
               message: `Student ID validated: ${result.fullName}`
             });
-            setStudent(result);
+            
 
             const response2 = await fetch(
               `http://127.0.0.1:8000/api/washday/${result.id}/`,
@@ -33,6 +53,7 @@ function ScanPage({setPage}) {
             );
             const result2 = await response.json();
             console.log(result);
+        }
 
     }
 
@@ -95,7 +116,7 @@ function ScanPage({setPage}) {
 
   return (
     <>
-      {!student && !isWashDay ? (<div className={classes.scannerContainer}>
+      {!student || !isWashDay ? (<div className={classes.scannerContainer}>
         <Title className={classes.scannerTitle} order={3}>Student ID Scanner</Title>
         <Paper shadow="lg" radius="lg" p="xl" withBorder>
           <div className={classes.webcamContainer}>
@@ -131,12 +152,33 @@ function ScanPage({setPage}) {
             fullWidth
             radius="md"
             size="lg"
+            disabled={isScanning || isWashDay}
             onClick={scanImage}
             loading={isScanning}
             color={validationResult?.success === false ? "red" : "teal"}
           >
             {isScanning ? 'Scanning...' : validationResult?.success === false ? 'Try Again' : 'Scan ID'}
           </Button>
+          <Switch
+            label="Is it a wash day?"
+            checked={isWashDay}
+            onChange={(event) => setIsWashDay(event.currentTarget.checked)}
+            mt="md"
+            size="md"
+            color="teal"
+          />
+          {isWashDay && (
+            <Button
+              className={classes.scanButton}
+              fullWidth
+              radius="md"
+              size="lg"
+              onClick={washDayLog}
+              color="blue"
+            >
+              Log Wash Day
+            </Button>
+          )}
         </Paper>
       </div>):<ScanUniPage student={student} setStudent={setStudent} setPage={setPage}/>}
     </>

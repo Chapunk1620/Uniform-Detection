@@ -336,13 +336,15 @@ def compliance_data(request):
         }, status=500)
         
 @api_view(['POST'])
-def wash_day(request,pk):
+def wash_day(request, pk):
     student = get_object_or_404(Student, id=pk)
+
     StudentLogs.objects.create(
-                student=student, 
-                log_type='CU',
-                timestamp=timezone.now()
-            )
+        student=student, 
+        log_type='CU',
+        timestamp=timezone.now()
+    )
+
     email = EmailMessage(
         subject='[Uniform Scanner] Detection Summary',
         body=(
@@ -357,5 +359,12 @@ def wash_day(request,pk):
         to=['faceless7078@gmail.com', student.email],
     )
     email.send()
+
+   
+    return Response({
+        'message': 'Log created successfully for Wash Day.',
+        'student': student.fullName,
+        'email_sent': True
+    })
     
    
