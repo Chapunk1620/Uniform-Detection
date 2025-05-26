@@ -116,7 +116,7 @@ function ScanPage({setPage}) {
 
   return (
     <>
-      {!student || !isWashDay ? (<div className={classes.scannerContainer}>
+      {!student  ? (<div className={classes.scannerContainer}>
         <Title className={classes.scannerTitle} order={3}>Student ID Scanner</Title>
         <Paper shadow="lg" radius="lg" p="xl" withBorder>
           <div className={classes.webcamContainer}>
@@ -152,7 +152,7 @@ function ScanPage({setPage}) {
             fullWidth
             radius="md"
             size="lg"
-            disabled={isScanning || isWashDay}
+            disabled={isWashDay}
             onClick={scanImage}
             loading={isScanning}
             color={validationResult?.success === false ? "red" : "teal"}
