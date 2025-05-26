@@ -11,6 +11,30 @@ function ScanPage({setPage}) {
     const [isScanning, setIsScanning] = useState(false);
     const [validationResult, setValidationResult] = useState(null);
     const [student, setStudent] = useState(null);
+    const [isWashDay, setIsWashDay] = useState(false);
+
+    const washDayLog = async () => {
+     
+            const response = await fetch(
+              "http://127.0.0.1:8000/api/scan/qr",
+              { method: "POST", body: formData }
+            );
+            const result = await response.json();
+            console.log(result);
+            setValidationResult({
+              success: true,
+              message: `Student ID validated: ${result.fullName}`
+            });
+            setStudent(result);
+
+            const response2 = await fetch(
+              `http://127.0.0.1:8000/api/washday/${result.id}/`,
+              { method: "POST", body: formData }
+            );
+            const result2 = await response.json();
+            console.log(result);
+
+    }
 
     const scanImage = async () => {
         setIsScanning(true);
@@ -71,7 +95,7 @@ function ScanPage({setPage}) {
 
   return (
     <>
-      {!student ? (<div className={classes.scannerContainer}>
+      {!student && !isWashDay ? (<div className={classes.scannerContainer}>
         <Title className={classes.scannerTitle} order={3}>Student ID Scanner</Title>
         <Paper shadow="lg" radius="lg" p="xl" withBorder>
           <div className={classes.webcamContainer}>

@@ -16,7 +16,8 @@ urlpatterns = [
     path('scan/qr', views.qr_scanner_view),
     path('scan/unif/<str:pk>/', views.uniform_scanner_view),
     path('logs/', views.student_logs),
-    path('analytics/', views.compliance_data)
+    path('analytics/', views.compliance_data),
+    path('washday/<str:pk>/', views.uniform_scanner_view),
     
   
 ]

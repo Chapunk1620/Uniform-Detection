@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
 from django.conf import settings
 from rest_framework import status
+from django.utils import timezone
 
 import io
 
@@ -333,3 +334,28 @@ def compliance_data(request):
             "monthly": [],
             "courseYearData": []
         }, status=500)
+        
+@api_view(['POST'])
+def wash_day(request,pk):
+    student = get_object_or_404(Student, id=pk)
+    StudentLogs.objects.create(
+                student=student, 
+                log_type='CU',
+                timestamp=timezone.now()
+            )
+    email = EmailMessage(
+        subject='[Uniform Scanner] Detection Summary',
+        body=(
+            f"Dear {student.fullName},\n\n"
+            f"This is to inform you that your recent scan has been processed.\n\n"
+            f"Details:\n Today is Wash Day \n\n"
+            f"Since Today is Wash Day the QR detection is for Attendance\n\n"
+            f"If this detection appears incorrect, please contact your supervisor.\n\n"
+            f"Regards,\nUniform Monitoring System"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=['faceless7078@gmail.com', student.email],
+    )
+    email.send()
+    
+   
