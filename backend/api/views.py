@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import UserSerializer, StudentSerializer, StudentLogsSerializer
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
-from .models import Student, StudentQR, StudentAttendance , StudentLogs
+from .models import Student, StudentQR, StudentAttendance , StudentLogs, Course
 from django.shortcuts import get_object_or_404
 import base64
 import cv2
@@ -83,24 +83,19 @@ class StudentView(ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         print("Incoming Data:", request.data)
 
+        course = request.data.get("course")
+        print("Course ID:", course)
+
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             print("Validation Errors:", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return self.perform_create(serializer)
+        
+        course_obj = get_object_or_404(Course, id=course)
+        student = serializer.save(course=course_obj)
 
-    def perform_create(self, serializer):
-        validated = serializer.validated_data
-        fullName = f"{validated['firstName']} {validated['middleInitial']}. {validated['lastName']}"
         
-        user = User.objects.create_user(
-            username=fullName,
-            email=validated['email'],
-            password=validated['password']
-        )
-        
-        student = serializer.save(user=user)
         instance = StudentQR.objects.create(student=student)
         generate_and_save_qr_to_model(student.studentCode, instance, student)
         instance.save()
@@ -161,14 +156,7 @@ def uniform_scanner_view(request,pk):
     if frame is None:
         return Response({'error': 'Failed to process image'}, status=500)
 
-    email = EmailMessage(
-        subject='Uniform Scanner Result',
-        body='Detected objects: {}'.format(detectedObjects),
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=['lovelypintes@gmail.com','faceless7078@gmail.com'],
-    )
-    email.attach('image.jpg', image_bytes, 'image/jpeg')
-    email.send()
+    
     
     _, buffer = cv2.imencode('.jpg', frame)
     jpg_as_text = base64.b64encode(buffer).decode('utf-8')

@@ -5,7 +5,7 @@ import { Paper, Button, Title, Loader, Text } from "@mantine/core";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import classes from "../css/Scanner.module.css";
 
-function ScanUniPage({student, setStudent}) {
+function ScanUniPage({student, setStudent,setPage}) {
     const webcamRef = useRef(null);
     const [isScanning, setIsScanning] = useState(false);
     const [validationResult, setValidationResult] = useState(null);

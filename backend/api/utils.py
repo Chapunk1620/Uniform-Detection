@@ -31,7 +31,7 @@ def generate_and_save_qr_to_model(data, instance,student):
     email = EmailMessage(
         subject='Uniform Scanner Result',
         body=f'An Account has been created for you with the following details:\n\n'
-             f'Username: {student.user.username}\n'
+             f'name: {student.firstName} {student.middleInitial}. {student.lastName}\n'
              f'Email: {student.email}\n\n'
              f'Please use the QR code attached to this email for your attendance.',
         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -138,7 +138,7 @@ def uniform_scanner(img_file,student):
         body=(
             f"Dear {student.fullName},\n\n"
             f"This is to inform you that your recent scan has been processed.\n\n"
-            f"Detection Result: **{uniform_status}**\n\n"
+            f"Detection Result: {uniform_status}\n\n"
             f"Details:\n{object_summary}\n\n"
             f"If this detection appears incorrect, please contact your supervisor.\n\n"
             f"Regards,\nUniform Monitoring System"

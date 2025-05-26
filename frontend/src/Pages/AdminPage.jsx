@@ -16,7 +16,7 @@ function AdminPage() {
       {page === "home" ? (
         <Analytics />
       ) : page === "scanId" ? (
-        <ScanPage />
+        <ScanPage setPage={setPage}/>
       ) : page === "status" ? (
         <UniformStatusPage />
       ) : page === "studentInfo" ? (

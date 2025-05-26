@@ -18,7 +18,7 @@ import AuthContext from "../Context/AuthContext";
 
 
 function NavBar({ setPage }) {
-  const { role } = useContext(AuthContext);
+  const { role,logOut } = useContext(AuthContext);
   const [opened, { toggle }] = useDisclosure(false);
 
   const adminTabs = [
@@ -80,7 +80,7 @@ function NavBar({ setPage }) {
               className={classes.tab}
               style={{ marginLeft: 'auto', color: 'red' }}
               onClick={() => {
-                console.log('Logout clicked');
+                logOut();
               }}
             >
               <Group gap={7}>

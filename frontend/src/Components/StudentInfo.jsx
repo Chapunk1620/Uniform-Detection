@@ -57,7 +57,7 @@ function StudentInfo() {
         
         // Group students by course
         const groupedByCourse = data.reduce((acc, student) => {
-          const course = student?.course?.name;
+          const course = student.course?.name;
           if (!acc[course]) {
             acc[course] = [];
           }

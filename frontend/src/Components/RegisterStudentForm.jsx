@@ -59,6 +59,7 @@ function RegisterStudentForm() {
       formData.append(key, value ?? '');
     });
 
+
     // Debug: show what's inside FormData
     for (let [key, value] of formData.entries()) {
       console.log(`${key}: ${value}`);
@@ -168,8 +169,9 @@ function RegisterStudentForm() {
                       { value: '0', label: 'BS Information Systems' },
                       { value: '1', label: 'BS Electronics and Communications Engineering' },
                     ]}
-                    {...form.getInputProps('course')}
-                      onChange={(value) => form.setFieldValue('course', parseInt(value))}
+                    value={String(form.values.course)}
+                    onChange={(value) => form.setFieldValue('course', parseInt(value))}
+                      
                   />
 
                   <Select

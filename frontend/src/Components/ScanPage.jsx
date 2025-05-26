@@ -6,7 +6,7 @@ import { IconCheck, IconX } from "@tabler/icons-react";
 import classes from "../css/Scanner.module.css";
 import ScanUniPage from './ScanUniPage';
 
-function ScanPage() {
+function ScanPage({setPage}) {
     const webcamRef = useRef(null);
     const [isScanning, setIsScanning] = useState(false);
     const [validationResult, setValidationResult] = useState(null);
@@ -114,7 +114,7 @@ function ScanPage() {
             {isScanning ? 'Scanning...' : validationResult?.success === false ? 'Try Again' : 'Scan ID'}
           </Button>
         </Paper>
-      </div>):<ScanUniPage student={student} setStudent={setStudent}/>}
+      </div>):<ScanUniPage student={student} setStudent={setStudent} setPage={setPage}/>}
     </>
 
   )
