@@ -20,6 +20,7 @@ EMAIL_HOST_PASSWORD=(the password of your email or an app password created in th
 
 for frontend setup:
 1.cd frontend
+
 2.npm install
 **to run the local server of the frontend**
 3.npm run dev
