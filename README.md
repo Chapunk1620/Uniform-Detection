@@ -13,12 +13,14 @@ For backend Setup:
 EMAIL_HOST_USER=(the email you will be using to send)
 EMAIL_HOST_PASSWORD=(the password of your email or an app password created in the profile settings of google account)
 (you can search how to create an app password)
+</br>
 **to run the local server of the backend**</br>
 6.cd backend</br>
 7.py manage.py runserver</br>
 
 
 for frontend setup:
+</br>
 1.cd frontend</br>
 2.npm install</br>
 **to run the local server of the frontend**</br>
