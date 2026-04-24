@@ -27,6 +27,7 @@ function NavBar({ setPage }) {
     { label: "Student Log", value: "status" },
     { label: "Student Information", value: "studentInfo" },
     { label: "Register Student", value: "registerStudent" },
+    { label: "Training Samples", value: "trainingSamples" },
   ];
 
   const studentTabs = [

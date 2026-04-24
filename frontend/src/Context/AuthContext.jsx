@@ -1,6 +1,7 @@
 import { jwtDecode } from 'jwt-decode';
 import React, { createContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -22,13 +23,11 @@ export function AuthProvider({children}) {
     )
     const nav = useNavigate()
 
-    const url = "http://127.0.0.1:8000/api/";
-
     const loginUser = async (e) => {
         e.preventDefault();
 
         try {
-            const response = await fetch(url + 'token', {
+            const response = await apiFetch('/api/token', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
@@ -56,7 +55,7 @@ export function AuthProvider({children}) {
 
     const updateToken = async () => {
         try {
-            const response = await fetch(url+'token/refresh', {
+            const response = await apiFetch('/api/token/refresh', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

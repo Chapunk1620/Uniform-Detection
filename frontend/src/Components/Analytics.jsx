@@ -25,6 +25,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { apiFetch } from "../config/api";
 
 const COLORS = ["#2ecc71", "#e74c3c", "#3498db", "#f1c40f", "#9b59b6"];
 
@@ -43,7 +44,7 @@ function Analytics() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/analytics/", {
+      const response = await apiFetch('/api/analytics/', {
         headers: {
           "Content-Type": "application/json",
         },

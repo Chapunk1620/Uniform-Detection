@@ -10,13 +10,32 @@ import Home from "./Pages/Home";
 import PrivateRoutes from "./Context/PrivateRoutes";
 import AdminPage from "./Pages/AdminPage";
 import StudentPage from "./Pages/StudentPage";
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, Paper, Text, Title } from "@mantine/core";
 import '@mantine/core/styles.css';
 import { Notifications } from '@mantine/notifications';
+import { hasApiBaseUrl } from "./config/api";
 
 
 function App() {
   const [count, setCount] = useState(0);
+
+  if (!hasApiBaseUrl) {
+    return (
+      <MantineProvider   theme={{
+        focusRing: 'always',
+        defaultRadius: 'md',
+        primaryColor: 'teal',}}>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: '#f4f7f6' }}>
+          <Paper shadow="md" radius="lg" p="xl" withBorder style={{ maxWidth: '520px', width: '100%' }}>
+            <Title order={2} ta="center">System Temporarily Unavailable</Title>
+            <Text ta="center" mt="md" c="dimmed">
+              The application is not ready to connect right now. Please contact the administrator and try again later.
+            </Text>
+          </Paper>
+        </div>
+      </MantineProvider>
+    );
+  }
 
   return (
     <MantineProvider   theme={{

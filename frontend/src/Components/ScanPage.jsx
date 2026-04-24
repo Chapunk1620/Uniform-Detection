@@ -3,6 +3,7 @@ import Webcam from "react-webcam";
 import { Paper, Button, Title, Loader, Text, Switch } from "@mantine/core";
 // import { showNotification } from "@mantine/notifications";
 import { IconCheck, IconX } from "@tabler/icons-react";
+import { apiFetch } from '../config/api';
 import classes from "../css/Scanner.module.css";
 import ScanUniPage from './ScanUniPage';
 
@@ -35,8 +36,8 @@ function ScanPage({setPage}) {
           formData.append("image", blob, "snapshot.png");
             
      
-            const response = await fetch(
-              "http://127.0.0.1:8000/api/scan/qr",
+            const response = await apiFetch(
+              '/api/scan/qr',
               { method: "POST", body: formData }
             );
             const result = await response.json();
@@ -47,8 +48,8 @@ function ScanPage({setPage}) {
             });
             
 
-            const response2 = await fetch(
-              `http://127.0.0.1:8000/api/washday/${result.id}/`,
+            const response2 = await apiFetch(
+              `/api/washday/${result.id}/`,
               { method: "POST", body: formData }
             );
             const result2 = await response.json();
@@ -79,8 +80,8 @@ function ScanPage({setPage}) {
           formData.append("image", blob, "snapshot.png");
     
           try {
-            const response = await fetch(
-              "http://127.0.0.1:8000/api/scan/qr",
+            const response = await apiFetch(
+              '/api/scan/qr',
               { method: "POST", body: formData }
             );
             const result = await response.json();

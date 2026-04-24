@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
+def training_sample_upload_path(instance, filename):
+    return f"training_samples/{instance.expected_label}/{filename}"
+
 class Course(models.Model):
     name = models.CharField(max_length=50)
     created = models.DateTimeField(auto_now_add=True)
@@ -48,3 +52,29 @@ class StudentLogs(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+
+class UniformTrainingSample(models.Model):
+    expected_label = models.CharField(
+        max_length=30,
+        choices=[
+            ('CompleteUniform', 'Complete Uniform'),
+            ('UniformTop', 'Uniform Top'),
+            ('UniformPants', 'Uniform Pants'),
+            ('NeedsReview', 'Needs Review'),
+        ],
+    )
+    notes = models.TextField(blank=True)
+    image = models.ImageField(upload_to=training_sample_upload_path)
+    captured_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="uniform_training_samples",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.expected_label} - {self.created.isoformat()}"

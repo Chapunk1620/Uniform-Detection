@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Student, StudentAttendance, StudentQR, StudentLogs,Course
+from .models import Student, StudentAttendance, StudentQR, StudentLogs, Course, UniformTrainingSample
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -53,3 +53,20 @@ class StudentLogsSerializer(serializers.ModelSerializer):
         model = StudentLogs
         fields = '__all__'
         read_only_fields = ['student']
+
+
+class UniformTrainingSampleSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UniformTrainingSample
+        fields = ['id', 'expected_label', 'notes', 'image', 'image_url', 'captured_by', 'created', 'updated']
+        read_only_fields = ['captured_by']
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if not obj.image:
+            return None
+        if request is None:
+            return obj.image.url
+        return request.build_absolute_uri(obj.image.url)

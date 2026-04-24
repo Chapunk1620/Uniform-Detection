@@ -13,6 +13,7 @@ import {
   Divider,
 } from '@mantine/core';
 import { IconChevronDown, IconChevronUp, IconEye } from '@tabler/icons-react';
+import { apiFetch } from '../config/api';
 import classes from '../css/UniformStatus.module.css';
 
 function UniformStatusPage() {
@@ -64,7 +65,7 @@ function UniformStatusPage() {
 
   const fetchStatusList = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/logs/');
+      const response = await apiFetch('/api/logs/');
       if (!response.ok) throw new Error('Failed to fetch status list');
       const data = await response.json();
       setStatusList(data);

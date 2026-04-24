@@ -15,6 +15,7 @@ import {
   Select,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { apiFetch } from "../config/api";
 
 function RegisterStudentForm() {
   const [opened, setOpened] = useState(false);
@@ -65,7 +66,7 @@ function RegisterStudentForm() {
       console.log(`${key}: ${value}`);
     }
 
-    const response = await fetch('http://127.0.0.1:8000/api/students/', {
+    const response = await apiFetch('/api/students/', {
       method: 'POST',
       body: formData,
     });

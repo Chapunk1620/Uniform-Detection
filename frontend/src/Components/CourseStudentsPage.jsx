@@ -27,6 +27,7 @@ import {
   IconSchool,
   IconArrowLeft
 } from '@tabler/icons-react';
+import { apiFetch } from '../config/api';
 import classes from '../css/StudentInfo.module.css';
 import AuthContext from '../Context/AuthContext';
 
@@ -66,7 +67,7 @@ function CourseStudentsPage({ course, onBack, students: initialStudents = [] }) 
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/student/${editableStudent.id}/`, {
+      const response = await apiFetch(`/api/student/${editableStudent.id}/`, {
         method: 'PUT',
         headers: {
           
@@ -97,7 +98,7 @@ function CourseStudentsPage({ course, onBack, students: initialStudents = [] }) 
     if (!selectedStudent) return;
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/student/${selectedStudent.id}/`, {
+      const response = await apiFetch(`/api/student/${selectedStudent.id}/`, {
         method: 'DELETE',
         headers: {
           

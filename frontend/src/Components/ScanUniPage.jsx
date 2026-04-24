@@ -1,125 +1,129 @@
-import React, { useRef, useState } from 'react'
-import Webcam from "react-webcam";
-import { Paper, Button, Title, Loader, Text } from "@mantine/core";
-// import { showNotification } from "@mantine/notifications";
-import { IconCheck, IconX } from "@tabler/icons-react";
-import classes from "../css/Scanner.module.css";
+import React, { useRef, useState } from 'react';
+import Webcam from 'react-webcam';
+import { Button, Loader, Paper, Text, Title } from '@mantine/core';
 
-function ScanUniPage({student, setStudent,setPage}) {
-    const webcamRef = useRef(null);
-    const [isScanning, setIsScanning] = useState(false);
-    const [validationResult, setValidationResult] = useState(null);
-    const [isNextStudent, setIsNextStudent] = useState(false);
+import { apiFetch } from '../config/api';
+import classes from '../css/Scanner.module.css';
 
-    // for debugging purpose
-    const [image, setImage] = useState(null);
-    const [resultImage, setResultImage] = useState(null);
+const STATUS_STYLES = {
+  complete_uniform: {
+    success: true,
+    className: classes.validationSuccess,
+    buttonColor: 'teal',
+  },
+  incomplete_uniform: {
+    success: false,
+    className: classes.validationError,
+    buttonColor: 'red',
+  },
+  uncertain: {
+    success: false,
+    className: classes.validationWarning,
+    buttonColor: 'yellow',
+  },
+};
 
-    const handleImageChange = (e) => {
-      setImage(e.target.files[0]);
-    };
+function ScanUniPage({ student, setStudent }) {
+  const webcamRef = useRef(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [validationResult, setValidationResult] = useState(null);
+  const [isNextStudent, setIsNextStudent] = useState(false);
+  const [resultImage, setResultImage] = useState(null);
 
-    const handleSubmit = async () => {
+  const resetForNextStudent = () => {
+    setStudent(null);
+    setValidationResult(null);
+    setResultImage(null);
+    setIsNextStudent(false);
+  };
+
+  const scanImage = async () => {
+    setIsScanning(true);
+    setValidationResult(null);
+    setIsNextStudent(false);
+
+    try {
+      const imageSrc = webcamRef.current?.getScreenshot();
+      if (!imageSrc) {
+        setValidationResult({
+          success: false,
+          className: classes.validationError,
+          message: 'Failed to capture image from webcam.',
+        });
+        return;
+      }
+
+      const response = await fetch(imageSrc);
+      const blob = await response.blob();
+
       const formData = new FormData();
-      formData.append('image', image);
+      formData.append('image', blob, 'snapshot.jpg');
 
-      const res = await fetch( `http://127.0.0.1:8000/api/scan/unif/${student.id}/`, {
-        method: 'POST',
-        body: formData,
+      const apiResponse = await apiFetch(
+        `/api/scan/unif/${student.id}/`,
+        { method: 'POST', body: formData }
+      );
+      const result = await apiResponse.json();
+
+      if (!apiResponse.ok) {
+        setValidationResult({
+          success: false,
+          className: classes.validationError,
+          message: result.error || 'Failed to process the scan.',
+        });
+        return;
+      }
+
+      const statusStyle = STATUS_STYLES[result.status] || STATUS_STYLES.uncertain;
+      const bestDetection = result.bestDetection
+        ? `${result.bestDetection.class_name} (${(result.bestDetection.confidence * 100).toFixed(0)}%)`
+        : 'No confident detection';
+
+      setResultImage(`data:image/jpeg;base64,${result.image}`);
+      setValidationResult({
+        success: statusStyle.success,
+        className: statusStyle.className,
+        buttonColor: statusStyle.buttonColor,
+        message: `${result.student.fullName}: ${result.statusLabel}`,
+        details: result.message,
+        bestDetection,
+        count: result.detectedObjects.length,
       });
+      setIsNextStudent(Boolean(result.shouldAdvance));
+    } catch (error) {
+      console.error('Uniform scan error:', error);
+      setValidationResult({
+        success: false,
+        className: classes.validationError,
+        message: 'Network error or invalid response format.',
+      });
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
-      const data = await res.json();
-      console.log(data);
-      
-      setResultImage(`data:image/jpeg;base64,${data.image}`);
-      
-    };
-    // ---------------------------------------
-
-
-
-    const scanImage = async () => {
-        setIsScanning(true);
-        setValidationResult(null);
-        if (webcamRef.current) {
-          const imageSrc = webcamRef.current.getScreenshot();
-          if (!imageSrc) {
-            setIsScanning(false);
-            console.error("Failed to capture image from webcam.");
-            return;
-          }
-    
-          const byteCharacters = atob(imageSrc.split(",")[1]);
-          const byteNumbers = Array.from(byteCharacters, (char) =>
-            char.charCodeAt(0)
-          );
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: "image/png" });
-    
-          const formData = new FormData();
-          formData.append("image", blob, "snapshot.png");
-          formData.append("student_id", student.id);
-    
-          try {
-            const response = await fetch(
-              `http://127.0.0.1:8000/api/scan/unif/${student.id}/`,
-              { method: "POST", body: formData }
-            );
-            const result = await response.json();
-            console.log(result);
-            setResultImage(`data:image/jpeg;base64,${result.image}`);
-            
-            if (!response.ok) {
-              const errorMessage = result.error || 'Failed to process the scan';
-              setValidationResult({
-                success: false,
-                message: errorMessage
-              });
-              setIsScanning(false);
-              return;
-            }
-
-            setValidationResult({
-              success: true,
-              message: `Student Uniform validated: ${result.fullName}`
-            });
-
-            setIsNextStudent(true);
-
-            
-            
-          } catch (error) {
-            console.error("Error processing image:", error);
-            console.error('Scan error:', error);
-            setValidationResult({
-              success: false,
-              message: "Network error or invalid response format"
-            });
-            // showNotification({
-            //   title: "Scan Error",
-            //   message: "Failed to communicate with the server. Please try again.",
-            //   color: "red",
-            //   icon: <IconX size={16} />,
-            // });
-          }
-        }
-        setIsScanning(false);
-      };
+  const buttonColor = validationResult?.buttonColor || 'teal';
 
   return (
     <div className={classes.scannerContainer}>
       <Title className={classes.scannerTitle} order={3}>Student Uniform Checker</Title>
       <Paper shadow="lg" radius="lg" p="xl" withBorder>
+        <Text className={classes.helperText}>
+          Center one student in frame, keep the camera steady, and make sure both the uniform top and pants are visible.
+        </Text>
+
         <div className={classes.webcamContainer}>
           <Webcam
             ref={webcamRef}
+            audio={false}
             screenshotFormat="image/jpeg"
+            screenshotQuality={0.92}
             width={860}
             height={600}
             videoConstraints={{
-              width: 4080,
-              height: 3060,
-              facingMode: "user",
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: { ideal: 'environment' },
             }}
           />
           <div className={classes.scanOverlay} />
@@ -133,11 +137,30 @@ function ScanUniPage({student, setStudent,setPage}) {
             </div>
           )}
         </div>
+
         {validationResult && (
-          <Text className={`${classes.validationMessage} ${validationResult.success ? classes.validationSuccess : classes.validationError}`}>
-            {validationResult.message}
-          </Text>
+          <div className={`${classes.validationMessage} ${validationResult.className}`}>
+            <Text fw={600}>{validationResult.message}</Text>
+            {validationResult.details && (
+              <Text size="sm" mt={6}>{validationResult.details}</Text>
+            )}
+            <Text size="sm" mt={6}>
+              Best detection: {validationResult.bestDetection} | Objects kept: {validationResult.count}
+            </Text>
+          </div>
         )}
+
+        {resultImage && (
+          <div className={classes.resultCard}>
+            <Text fw={600}>Latest Scan Result</Text>
+            <img
+              src={resultImage}
+              alt="Detected uniform frame"
+              className={classes.resultImage}
+            />
+          </div>
+        )}
+
         <Button
           className={classes.scanButton}
           fullWidth
@@ -145,48 +168,27 @@ function ScanUniPage({student, setStudent,setPage}) {
           size="lg"
           onClick={scanImage}
           loading={isScanning}
-          color={validationResult?.success === false ? "red" : "teal"}
+          color={buttonColor}
         >
-          {isScanning ? 'Scanning...' : validationResult?.success === false ? 'Try Again' : 'Scan Uniform'}
+          {isScanning ? 'Scanning...' : validationResult?.success === false ? 'Scan Again' : 'Scan Uniform'}
         </Button>
+
         {isNextStudent && (
           <Button
             className={classes.scanButton}
             fullWidth
             radius="md"
             size="lg"
-            onClick={() => {
-              setStudent(null);
-              setIsNextStudent(false);
-            }}
+            onClick={resetForNextStudent}
             color="teal"
+            variant="light"
           >
             Next Student
           </Button>
         )}
       </Paper>
-
-      {/* for debugging purpose */}
-        <div>
-        <h2>Upload Image for Uniform Detection</h2>
-        <input type="file" accept="image/*" onChange={handleImageChange} />
-        <button onClick={handleSubmit}>Submit</button>
-        <div className="w-[200px] h-[200px]">
-        {resultImage && (
-          <div>
-            <h3>Detection Result</h3>
-            <img
-              src={resultImage}
-              alt="Detected Frame"
-              className="w-[200px] h-[200px] object-contain rounded bg-gray-100"
-            />
-          </div>
-        )}
-        </div>
-      </div>
     </div>
-
-  )
+  );
 }
 
 export default ScanUniPage;

@@ -21,7 +21,8 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
     "react-webcam": "^7.2.0",
-    "recharts": "^2.12.0"
+    "recharts": "^2.12.0",
+    "vercel": "^52.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

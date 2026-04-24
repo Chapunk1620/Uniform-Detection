@@ -17,6 +17,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconSearch, IconSchool, IconUser, IconArrowRight } from '@tabler/icons-react';
+import { apiFetch } from '../config/api';
 import classes from '../css/StudentInfo.module.css';
 import AuthContext from '../Context/AuthContext';
 import CourseStudentsPage from './CourseStudentsPage';
@@ -37,7 +38,7 @@ function StudentInfo() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://127.0.0.1:8000/api/students/', {
+      const response = await apiFetch('/api/students/', {
         headers: {
           'Content-Type': 'application/json',
         }
@@ -109,7 +110,7 @@ function StudentInfo() {
     if (!selectedStudent) return;
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/student/${selectedStudent.id}/`, {
+      const response = await apiFetch(`/api/student/${selectedStudent.id}/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

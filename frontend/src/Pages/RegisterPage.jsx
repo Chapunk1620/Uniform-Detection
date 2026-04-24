@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../Context/AuthContext";
+import { apiFetch } from "../config/api";
 import classes from "../css/Authentication.module.css";
 import logo from "../assets/logo.png";
 
@@ -20,7 +21,7 @@ function RegisterPage() {
   var RegisterUser = async (e) => {
     e.preventDefault();
 
-    let response = await fetch("http://127.0.0.1:8000/api/register/", {
+    let response = await apiFetch("/api/register/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

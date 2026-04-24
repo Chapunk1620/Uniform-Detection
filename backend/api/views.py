@@ -5,10 +5,10 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import UserSerializer, StudentSerializer, StudentLogsSerializer
+from .serializers import UserSerializer, StudentSerializer, StudentLogsSerializer, UniformTrainingSampleSerializer
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
-from .models import Student, StudentQR, StudentAttendance , StudentLogs, Course
+from .models import Student, StudentQR, StudentAttendance , StudentLogs, Course, UniformTrainingSample
 from django.shortcuts import get_object_or_404
 import base64
 import cv2
@@ -137,32 +137,60 @@ def qr_scanner_view(request):
     
 @api_view(['POST'])
 def uniform_scanner_view(request,pk):
-    
-    print(request.data)
-    
     student = get_object_or_404(Student, id=pk)
-    if not student:
-        return Response({'error': 'Student not found'}, status=404)
     
     image_file = request.FILES.get("image")
     
     if not image_file:
         return Response({'error': 'No file provided'}, status=400)
-    
-   
-    image_bytes = image_file.read()
-    
 
-    frame, detectedObjects = uniform_scanner(image_file,student)
-    if frame is None:
-        return Response({'error': 'Failed to process image'}, status=500)
+    scan_result = uniform_scanner(image_file, student)
+    if not scan_result.get("success"):
+        return Response({'error': scan_result.get('error', 'Failed to process image')}, status=400)
 
-    
-    
+    frame = scan_result["frame"]
+
     _, buffer = cv2.imencode('.jpg', frame)
     jpg_as_text = base64.b64encode(buffer).decode('utf-8')
 
-    return Response({'image': jpg_as_text, "detectedObjects": detectedObjects}, status=200)
+    return Response({
+        'image': jpg_as_text,
+        'student': {
+            'id': student.id,
+            'fullName': student.fullName,
+        },
+        'status': scan_result['status'],
+        'statusLabel': scan_result['statusLabel'],
+        'message': scan_result['message'],
+        'confidenceThreshold': scan_result['confidenceThreshold'],
+        'bestDetection': scan_result['bestDetection'],
+        'detectedObjects': scan_result['detectedObjects'],
+        'shouldAdvance': scan_result['shouldAdvance'],
+    }, status=200)
+
+
+@api_view(['GET', 'POST'])
+def uniform_training_samples(request):
+    if request.method == 'GET':
+        samples = UniformTrainingSample.objects.all().order_by('-created')[:20]
+        serializer = UniformTrainingSampleSerializer(samples, many=True, context={'request': request})
+        return Response(serializer.data, status=200)
+
+    image_file = request.FILES.get('image')
+    if not image_file:
+        return Response({'error': 'No file provided'}, status=400)
+
+    serializer = UniformTrainingSampleSerializer(data=request.data, context={'request': request})
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+
+    captured_by = request.user if getattr(request.user, 'is_authenticated', False) else None
+    sample = serializer.save(captured_by=captured_by)
+
+    return Response(
+        UniformTrainingSampleSerializer(sample, context={'request': request}).data,
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(['GET'])
