@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "UniformDetectionModelV3.pt")
 CONFIDENCE_THRESHOLD = 0.55
+COMPLETE_UNIFORM_THRESHOLD = 0.80
 _UNIFORM_MODEL = None
 _MODEL_LOCK = threading.Lock()
 _INFERENCE_LOCK = threading.Lock()
@@ -122,16 +123,25 @@ def _build_scan_details(detected_objects):
 
 
 def _determine_scan_status(detected_objects):
-    class_names = {obj["class_name"] for obj in detected_objects}
+    if not detected_objects:
+        return "uncertain", "Needs Rescan", None
 
-    has_complete = "CompleteUniform" in class_names
-    has_top = "UniformTop" in class_names
-    has_pants = "UniformPants" in class_names
+    best_detection = max(detected_objects, key=lambda obj: obj["confidence"])
+    best_class_name = best_detection["class_name"]
+    best_confidence = best_detection["confidence"]
 
-    if has_complete or (has_top and has_pants):
+    if best_class_name == "CompleteUniform" and best_confidence >= COMPLETE_UNIFORM_THRESHOLD:
         return "complete_uniform", "Complete Uniform", "CU"
-    if detected_objects:
+    if best_class_name in {"UniformTop", "UniformPants"}:
         return "incomplete_uniform", "Incomplete Uniform", "IU"
+
+    has_partial_uniform = any(
+        obj["class_name"] in {"UniformTop", "UniformPants"}
+        for obj in detected_objects
+    )
+    if has_partial_uniform:
+        return "incomplete_uniform", "Incomplete Uniform", "IU"
+
     return "uncertain", "Needs Rescan", None
 
 def uniform_scanner(img_file,student):
