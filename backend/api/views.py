@@ -165,6 +165,7 @@ def uniform_scanner_view(request,pk):
         'confidenceThreshold': scan_result['confidenceThreshold'],
         'bestDetection': scan_result['bestDetection'],
         'detectedObjects': scan_result['detectedObjects'],
+        'ruleSummary': scan_result['ruleSummary'],
         'shouldAdvance': scan_result['shouldAdvance'],
     }, status=200)
 

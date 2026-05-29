@@ -1,169 +1,263 @@
 .scannerContainer {
-  position: relative;
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px;
+	position: relative;
+	width: 100%;
+	max-width: 900px;
+	margin: 0 auto;
+	padding: 20px;
 }
 
 .scannerTitle {
-  color: var(--mantine-color-teal-6);
-  text-align: center;
-  margin-bottom: 20px;
-  font-weight: 600;
+	color: var(--mantine-color-teal-6);
+	text-align: center;
+	margin-bottom: 20px;
+	font-weight: 600;
 }
 
 .webcamContainer {
-  position: relative;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+	position: relative;
+	border-radius: 15px;
+	overflow: hidden;
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .scanOverlay {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--mantine-color-teal-5);
-  animation: scan 2s linear infinite;
-  box-shadow: 0 0 8px var(--mantine-color-teal-5);
+	position: absolute;
+	top: 50%;
+	left: 0;
+	width: 100%;
+	height: 2px;
+	background: var(--mantine-color-teal-5);
+	animation: scan 2s linear infinite;
+	box-shadow: 0 0 8px var(--mantine-color-teal-5);
 }
 
 .scannerCorner {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--mantine-color-teal-5);
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	border: 2px solid var(--mantine-color-teal-5);
 }
 
 .topLeft {
-  top: 20px;
-  left: 20px;
-  border-right: 0;
-  border-bottom: 0;
+	top: 20px;
+	left: 20px;
+	border-right: 0;
+	border-bottom: 0;
 }
 
 .topRight {
-  top: 20px;
-  right: 20px;
-  border-left: 0;
-  border-bottom: 0;
+	top: 20px;
+	right: 20px;
+	border-left: 0;
+	border-bottom: 0;
 }
 
 .bottomLeft {
-  bottom: 20px;
-  left: 20px;
-  border-right: 0;
-  border-top: 0;
+	bottom: 20px;
+	left: 20px;
+	border-right: 0;
+	border-top: 0;
 }
 
 .bottomRight {
-  bottom: 20px;
-  right: 20px;
-  border-left: 0;
-  border-top: 0;
+	bottom: 20px;
+	right: 20px;
+	border-left: 0;
+	border-top: 0;
 }
 
 .scanButton {
-  margin-top: 20px;
-  transition: transform 0.2s;
+	margin-top: 20px;
+	transition: transform 0.2s;
 }
 
 .helperText {
-  margin-bottom: 16px;
-  text-align: center;
-  color: var(--mantine-color-gray-7);
+	margin-bottom: 16px;
+	text-align: center;
+	color: var(--mantine-color-gray-7);
 }
 
 .scanButton:hover {
-  transform: translateY(-2px);
+	transform: translateY(-2px);
 }
 
 @keyframes scan {
-  0% {
-    transform: translateY(-100px);
-  }
-  100% {
-    transform: translateY(500px);
-  }
+	0% {
+		transform: translateY(-100px);
+	}
+	100% {
+		transform: translateY(500px);
+	}
 }
 
 .loadingOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 15px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 15px;
+}
+
+.countdownOverlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 15px;
+	background: rgba(0, 0, 0, 0.45);
+}
+
+.countdownCircle {
+	width: 140px;
+	height: 140px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 4px solid var(--mantine-color-teal-4);
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.94);
+	box-shadow: 0 0 30px rgba(12, 166, 120, 0.45);
+	animation: countdownPulse 1s ease-in-out infinite;
+}
+
+.countdownNumber {
+	color: var(--mantine-color-teal-8);
+	font-size: 64px;
+	font-weight: 800;
+	line-height: 1;
+}
+
+@keyframes countdownPulse {
+	0% {
+		transform: scale(0.92);
+		opacity: 0.85;
+	}
+	50% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(0.92);
+		opacity: 0.85;
+	}
+}
+
+.cameraErrorOverlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 3;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	text-align: center;
+	color: var(--mantine-color-red-9);
+	background: rgba(255, 245, 245, 0.96);
+	border: 1px solid var(--mantine-color-red-3);
+	border-radius: 15px;
 }
 
 .validationMessage {
-  margin-top: 15px;
-  text-align: center;
-  padding: 10px;
-  border-radius: 8px;
-  font-weight: 500;
+	margin-top: 15px;
+	text-align: center;
+	padding: 10px;
+	border-radius: 8px;
+	font-weight: 500;
 }
 
 .validationSuccess {
-  background: var(--mantine-color-teal-1);
-  color: var(--mantine-color-teal-9);
+	background: var(--mantine-color-teal-1);
+	color: var(--mantine-color-teal-9);
 }
 
 .validationError {
-  background: var(--mantine-color-red-1);
-  color: var(--mantine-color-red-9);
+	background: var(--mantine-color-red-1);
+	color: var(--mantine-color-red-9);
 }
 
 .validationWarning {
-  background: var(--mantine-color-yellow-1);
-  color: var(--mantine-color-yellow-9);
+	background: var(--mantine-color-yellow-1);
+	color: var(--mantine-color-yellow-9);
+}
+
+.uploadSection {
+	margin-top: 16px;
+	padding: 14px;
+	border: 1px solid var(--mantine-color-blue-2);
+	border-radius: 12px;
+	background: var(--mantine-color-blue-0);
+}
+
+.fileInput {
+	display: block;
+	width: 100%;
+	margin-top: 12px;
+	padding: 10px;
+	border: 1px dashed var(--mantine-color-blue-4);
+	border-radius: 8px;
+	background: white;
 }
 
 .resultCard {
-  margin-top: 16px;
-  padding: 14px;
-  border: 1px solid var(--mantine-color-gray-3);
-  border-radius: 12px;
-  background: var(--mantine-color-gray-0);
+	margin-top: 16px;
+	padding: 14px;
+	border: 1px solid var(--mantine-color-gray-3);
+	border-radius: 12px;
+	background: var(--mantine-color-gray-0);
 }
 
 .resultImage {
-  width: 100%;
-  margin-top: 12px;
-  border-radius: 10px;
-  object-fit: contain;
-  background: var(--mantine-color-gray-1);
+	width: 100%;
+	margin-top: 12px;
+	border-radius: 10px;
+	object-fit: contain;
+	background: var(--mantine-color-gray-1);
+}
+
+.uploadedPreviewImage {
+	display: block;
+	width: 100%;
+	height: 600px;
+	object-fit: contain;
+	background: var(--mantine-color-gray-1);
 }
 
 .captureForm {
-  display: grid;
-  gap: 16px;
-  margin-top: 16px;
+	display: grid;
+	gap: 16px;
+	margin-top: 16px;
 }
 
 .recentSamplesSection {
-  margin-top: 24px;
+	margin-top: 24px;
 }
 
 .sampleCard {
-  padding: 12px;
-  border: 1px solid var(--mantine-color-gray-3);
-  border-radius: 12px;
-  background: var(--mantine-color-gray-0);
+	padding: 12px;
+	border: 1px solid var(--mantine-color-gray-3);
+	border-radius: 12px;
+	background: var(--mantine-color-gray-0);
 }
 
 .sampleCardImage {
-  width: 100%;
-  height: 180px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  object-fit: cover;
-  background: var(--mantine-color-gray-1);
+	width: 100%;
+	height: 180px;
+	margin-bottom: 10px;
+	border-radius: 10px;
+	object-fit: cover;
+	background: var(--mantine-color-gray-1);
 }

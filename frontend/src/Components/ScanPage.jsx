@@ -13,6 +13,14 @@ function ScanPage({setPage}) {
     const [validationResult, setValidationResult] = useState(null);
     const [student, setStudent] = useState(null);
     const [isWashDay, setIsWashDay] = useState(false);
+    const [cameraError, setCameraError] = useState(null);
+
+    const handleCameraError = (error) => {
+      console.error('Camera access error:', error);
+      setCameraError(
+        'Camera access is blocked or unavailable. On mobile, use HTTPS (for example ngrok) instead of an IP address with http.'
+      );
+    };
 
     const washDayLog = async () => {
 
@@ -123,6 +131,8 @@ function ScanPage({setPage}) {
           <div className={classes.webcamContainer}>
             <Webcam
               ref={webcamRef}
+              onUserMedia={() => setCameraError(null)}
+              onUserMediaError={handleCameraError}
               screenshotFormat="image/jpeg"
               width={560}
               height={400}
@@ -132,6 +142,12 @@ function ScanPage({setPage}) {
                 facingMode: "user",
               }}
             />
+            {cameraError && (
+              <div className={classes.cameraErrorOverlay}>
+                <Text fw={600}>Camera not available</Text>
+                <Text size="sm" mt={6}>{cameraError}</Text>
+              </div>
+            )}
             <div className={classes.scanOverlay} />
             <div className={`${classes.scannerCorner} ${classes.topLeft}`} />
             <div className={`${classes.scannerCorner} ${classes.topRight}`} />
