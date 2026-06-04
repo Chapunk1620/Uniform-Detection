@@ -45,11 +45,19 @@ export function AuthProvider({children}) {
                 localStorage.setItem('user', JSON.stringify(jwtDecode(data.access)));
                 localStorage.setItem('role', JSON.stringify(data.role));
                 nav('/');
+                return { success: true };
             } else {
-                // Handle login error (e.g., show an error message)
+                return {
+                    success: false,
+                    message: 'We could not sign you in. Please check your username and password, then try again.',
+                };
             }
         } catch (error) {
             console.error('Error during login:', error);
+            return {
+                success: false,
+                message: 'We could not connect right now. Please check your connection and try again.',
+            };
         }
     };
 

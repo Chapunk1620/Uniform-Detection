@@ -1,11 +1,13 @@
-import React, { useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
 import AuthContext from "../Context/AuthContext";
 import classes from "../css/Authentication.module.css";
 import logo from "../assets/logo.png";
+import { notifications } from "@mantine/notifications";
+import { IconAlertCircle } from "@tabler/icons-react";
 
 import {
   Anchor,
+  Alert,
   Button,
   Paper,
   PasswordInput,
@@ -15,8 +17,28 @@ import {
 } from "@mantine/core";
 
 function Login() {
+  const [loginError, setLoginError] = useState("");
+  const [isSigningIn, setIsSigningIn] = useState(false);
   let { loginUser } = useContext(AuthContext);
-  // const nav = useNavigate();
+
+  const handleLoginSubmit = async (event) => {
+    setLoginError("");
+    setIsSigningIn(true);
+
+    const result = await loginUser(event);
+
+    if (result?.success === false) {
+      setLoginError(result.message);
+      notifications.show({
+        title: "Sign in unsuccessful",
+        message: result.message,
+        color: "yellow",
+        icon: <IconAlertCircle size={18} />,
+      });
+    }
+
+    setIsSigningIn(false);
+  };
 
   return (
     <div className={classes.wrapper}>
@@ -26,9 +48,21 @@ function Login() {
         </div>
 
         <form
-          onSubmit={loginUser}
+          onSubmit={handleLoginSubmit}
           className="flex flex-col justify-center items-center space-y-2"
         >
+          {loginError && (
+            <Alert
+              color="yellow"
+              icon={<IconAlertCircle size={18} />}
+              mt="md"
+              role="alert"
+              title="Please check your sign in details"
+              variant="light"
+            >
+              {loginError}
+            </Alert>
+          )}
           <TextInput
             label="Username"
             type="text"
@@ -57,12 +91,13 @@ function Login() {
             size="md"
             radius="md"
             color="teal.9"
+            loading={isSigningIn}
           >
-            Sign in
+            {isSigningIn ? "Signing in..." : "Sign in"}
           </Button>
         </form>
         <Text ta="center" mt="md">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Anchor href="/register" fw={500}>
             <Text color="teal.8" component="span">
               Register{" "}
