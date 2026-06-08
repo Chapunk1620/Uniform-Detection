@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Button,
   Container,
@@ -31,20 +31,10 @@ function RegisterStudentForm() {
       email: '',
       password: '',
     },
-    validateInputOnBlur: ['studentCode'],
     validate: {
       firstName: (value) => (value.length < 2 ? 'First name must have at least 2 letters' : null),
       lastName: (value) => (value.length < 2 ? 'Last name must have at least 2 letters' : null),
-      studentCode: async (value) => {
-        if (value.length < 5) return 'Student code must be at least 5 characters long';
-        try {
-          const res = await fetch(apiUrl(`/api/check-student-code/?code=${encodeURIComponent(value)}`));
-          const data = await res.json();
-          return data.exists ? 'Student code already exists' : null;
-        } catch {
-          return null;
-        }
-      },
+      studentCode: (value) => (value.length < 5 ? 'Student code must be at least 5 characters long' : null),
       course: (value) => (value ? null : 'Please select a course'),
       year_level: (value) => (/^[1-5]$/.test(value) ? null : 'Year level must be between 1-5'),
       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
@@ -61,8 +51,27 @@ function RegisterStudentForm() {
     },
   });
 
+  const checkStudentCode = useCallback(async (value) => {
+    if (value.length < 5) return;
+    try {
+      const res = await fetch(apiUrl(`/api/check-student-code/?code=${encodeURIComponent(value)}`));
+      const data = await res.json();
+      if (data.exists) {
+        form.setFieldError('studentCode', 'Student code already exists');
+      }
+    } catch {
+      form.clearFieldError('studentCode');
+    }
+  }, []);
+
   const RegisterStudent = async (values) => {
   try {
+    const codeRes = await fetch(apiUrl(`/api/check-student-code/?code=${encodeURIComponent(values.studentCode)}`));
+    const codeData = await codeRes.json();
+    if (codeData.exists) {
+      form.setFieldError('studentCode', 'Student code already exists');
+      return;
+    }
     const formData = new FormData();
 
     // Safely append all values as strings
@@ -165,6 +174,10 @@ function RegisterStudentForm() {
                     size="md"
                     required
                     {...form.getInputProps('studentCode')}
+                    onBlur={(e) => {
+                      form.getInputProps('studentCode').onBlur?.(e);
+                      checkStudentCode(form.values.studentCode);
+                    }}
                   />
 
                   <Select
