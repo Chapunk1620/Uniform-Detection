@@ -1,6 +1,6 @@
 import json
+from django.db import IntegrityError
 from django.test import TestCase, SimpleTestCase
-from django.contrib.auth.models import User
 from .models import Student, Course
 
 from .utils import _determine_scan_status
@@ -69,7 +69,6 @@ class UniformScanDecisionTests(SimpleTestCase):
 class CheckStudentCodeTests(TestCase):
     def setUp(self):
         self.course = Course.objects.create(name="BS Computer Science")
-        self.user = User.objects.create_user(username="testuser", password="pass1234")
         self.student = Student.objects.create(
             firstName="John",
             middleInitial="D",
@@ -98,13 +97,9 @@ class CheckStudentCodeTests(TestCase):
         self.assertEqual(response.status_code, 400)
 
 
-from django.db import IntegrityError
-
-
 class CreateStudentDuplicateTests(TestCase):
     def setUp(self):
         self.course = Course.objects.create(name="BS Computer Science")
-        self.user = User.objects.create_user(username="testuser2", password="pass1234")
         self.student = Student.objects.create(
             firstName="John",
             middleInitial="D",
