@@ -364,6 +364,15 @@ def compliance_data(request):
             "courseYearData": []
         }, status=500)
         
+@api_view(['GET'])
+def check_student_code(request):
+    code = request.query_params.get("code")
+    if not code:
+        return Response({"error": "code query parameter is required"}, status=400)
+    exists = Student.objects.filter(studentCode=code).exists()
+    return Response({"exists": exists})
+
+
 @api_view(['POST'])
 def wash_day(request, pk):
     student = get_object_or_404(Student, id=pk)

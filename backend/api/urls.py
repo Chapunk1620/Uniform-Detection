@@ -18,6 +18,7 @@ urlpatterns = [
     path('training-samples/', views.uniform_training_samples),
     path('logs/', views.student_logs),
     path('analytics/', views.compliance_data),
+    path('check-student-code/', views.check_student_code),
     path('washday/<str:pk>/', views.wash_day),
     
   
