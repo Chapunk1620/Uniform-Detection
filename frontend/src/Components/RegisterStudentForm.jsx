@@ -15,7 +15,7 @@ import {
   Select,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { apiFetch } from "../config/api";
+import { apiFetch, apiUrl } from "../config/api";
 
 function RegisterStudentForm() {
   const [opened, setOpened] = useState(false);
@@ -31,10 +31,20 @@ function RegisterStudentForm() {
       email: '',
       password: '',
     },
+    validateInputOnBlur: ['studentCode'],
     validate: {
       firstName: (value) => (value.length < 2 ? 'First name must have at least 2 letters' : null),
       lastName: (value) => (value.length < 2 ? 'Last name must have at least 2 letters' : null),
-      studentCode: (value) => (value.length < 5 ? 'Student code must be at least 5 characters long' : null),
+      studentCode: async (value) => {
+        if (value.length < 5) return 'Student code must be at least 5 characters long';
+        try {
+          const res = await fetch(apiUrl(`/api/check-student-code/?code=${encodeURIComponent(value)}`));
+          const data = await res.json();
+          return data.exists ? 'Student code already exists' : null;
+        } catch {
+          return null;
+        }
+      },
       course: (value) => (value ? null : 'Please select a course'),
       year_level: (value) => (/^[1-5]$/.test(value) ? null : 'Year level must be between 1-5'),
       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
