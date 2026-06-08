@@ -22,6 +22,7 @@ import io
 
 from .utils import generate_and_save_qr_to_model, qr_scanner , uniform_scanner
 
+from django.db import IntegrityError
 from django.db.models import Count, Q
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from django.http import JsonResponse
@@ -94,7 +95,14 @@ class StudentView(ListCreateAPIView):
 
         
         course_obj = get_object_or_404(Course, id=course)
-        student = serializer.save(course=course_obj)
+
+        try:
+            student = serializer.save(course=course_obj)
+        except IntegrityError:
+            return Response(
+                {"studentCode": ["A student with this code already exists."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         
         instance = StudentQR.objects.create(student=student)

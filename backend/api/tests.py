@@ -96,3 +96,37 @@ class CheckStudentCodeTests(TestCase):
     def test_missing_code_param_returns_400(self):
         response = self.client.get("/api/check-student-code/")
         self.assertEqual(response.status_code, 400)
+
+
+from django.db import IntegrityError
+
+
+class CreateStudentDuplicateTests(TestCase):
+    def setUp(self):
+        self.course = Course.objects.create(name="BS Computer Science")
+        self.user = User.objects.create_user(username="testuser2", password="pass1234")
+        self.student = Student.objects.create(
+            firstName="John",
+            middleInitial="D",
+            lastName="Doe",
+            studentCode="STU-002",
+            email="john@example.com",
+            password="Password1",
+            course=self.course,
+            year_level=1,
+        )
+
+    def test_create_duplicate_student_code_returns_400(self):
+        payload = {
+            "firstName": "Jane",
+            "middleInitial": "M",
+            "lastName": "Smith",
+            "studentCode": "STU-002",
+            "email": "jane@example.com",
+            "password": "Password1",
+            "course": self.course.id,
+            "year_level": 2,
+        }
+        response = self.client.post("/api/students/", payload, format="json")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("already exists", str(response.content.lower()))
