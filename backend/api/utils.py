@@ -52,7 +52,7 @@ def generate_and_save_qr_to_model(data, instance,student):
              f'Email: {student.email}\n\n'
              f'Please use the QR code attached to this email for your attendance.',
         from_email=settings.DEFAULT_FROM_EMAIL,
-        to=['faceless7078@gmail.com',student.email],
+        to=[settings.EMAIL_HOST_USER, student.email],
     )
     email.attach('qr_code.png', buffer.read(), 'image/png')
 
@@ -346,7 +346,7 @@ def uniform_scanner(img_file,student):
     _send_email_async(
         subject='[Uniform Scanner] Detection Summary',
         body=email_body,
-        recipients=['faceless7078@gmail.com', student.email],
+        recipients=[settings.EMAIL_HOST_USER, student.email],
         attachment_bytes=jpeg_bytes,
     )
 

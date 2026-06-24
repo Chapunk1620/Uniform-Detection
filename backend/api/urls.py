@@ -14,6 +14,7 @@ urlpatterns = [
     path('students/', views.StudentView.as_view()),
     path('student/<str:pk>/', views.StudentDetailView.as_view()),
     path('scan/qr', views.qr_scanner_view),
+    path('scan/qr-code/<str:code>/', views.qr_code_lookup),
     path('scan/unif/<str:pk>/', views.uniform_scanner_view),
     path('training-samples/', views.uniform_training_samples),
     path('logs/', views.student_logs),

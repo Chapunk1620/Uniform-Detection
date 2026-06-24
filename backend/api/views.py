@@ -178,6 +178,15 @@ def uniform_scanner_view(request,pk):
     }, status=200)
 
 
+@api_view(['GET'])
+def qr_code_lookup(request, code):
+    student = Student.objects.filter(studentCode=code).first()
+    if student:
+        serializer = StudentSerializer(student)
+        return Response(serializer.data, status=200)
+    return Response({'error': 'Student not found'}, status=404)
+
+
 @api_view(['GET', 'POST'])
 def uniform_training_samples(request):
     if request.method == 'GET':
@@ -402,7 +411,7 @@ def wash_day(request, pk):
             f"Regards,\nUniform Monitoring System"
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
-        to=['faceless7078@gmail.com', student.email],
+        to=[settings.EMAIL_HOST_USER, student.email],
     )
     email.send()
 

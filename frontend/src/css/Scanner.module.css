@@ -98,6 +98,38 @@
 	}
 }
 
+.autoScanIndicator {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	z-index: 5;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 14px;
+	background: rgba(0, 0, 0, 0.65);
+	border-radius: 20px;
+	color: #fff;
+	font-size: 13px;
+	font-weight: 500;
+	pointer-events: none;
+	backdrop-filter: blur(4px);
+}
+
+.autoScanDot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--mantine-color-teal-5);
+	animation: autoScanPulse 1.5s ease-in-out infinite;
+	box-shadow: 0 0 6px var(--mantine-color-teal-5);
+}
+
+@keyframes autoScanPulse {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: 0.3; transform: scale(0.7); }
+}
+
 .loadingOverlay {
 	position: absolute;
 	top: 0;

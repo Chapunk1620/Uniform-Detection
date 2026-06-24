@@ -1,8 +1,7 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import Webcam from "react-webcam";
 import { Paper, Button, Title, Loader, Text, Switch } from "@mantine/core";
 // import { showNotification } from "@mantine/notifications";
-import { IconCheck, IconX } from "@tabler/icons-react";
 import { apiFetch } from '../config/api';
 import classes from "../css/Scanner.module.css";
 import ScanUniPage from './ScanUniPage';
@@ -14,6 +13,11 @@ function ScanPage({setPage}) {
     const [student, setStudent] = useState(null);
     const [isWashDay, setIsWashDay] = useState(false);
     const [cameraError, setCameraError] = useState(null);
+    const [isAutoScanning, setIsAutoScanning] = useState(false);
+    const isProcessingRef = useRef(false);
+    const studentRef = useRef(null);
+    const isWashDayRef = useRef(false);
+    const lastDetectedRef = useRef('');
 
     const handleCameraError = (error) => {
       console.error('Camera access error:', error);
@@ -123,6 +127,114 @@ function ScanPage({setPage}) {
         setIsScanning(false);
       };
 
+    useEffect(() => {
+        studentRef.current = student;
+        isWashDayRef.current = isWashDay;
+    });
+
+    useEffect(() => {
+        let detector = null;
+        let errorTimeout = null;
+        const useDetector = typeof window !== 'undefined' && 'BarcodeDetector' in window;
+        if (useDetector) {
+            try {
+                detector = new BarcodeDetector({ formats: ['qr_code'] });
+            } catch {
+                console.warn('BarcodeDetector init failed, using backend fallback');
+            }
+        }
+
+        const showError = (message) => {
+            if (errorTimeout) clearTimeout(errorTimeout);
+            setValidationResult({ success: false, message });
+            errorTimeout = setTimeout(() => setValidationResult(null), 3000);
+        };
+
+        const handleResult = async (result) => {
+            if (!result || !result.id) return;
+            if (result.studentCode === lastDetectedRef.current) return;
+            lastDetectedRef.current = result.studentCode;
+            studentRef.current = result;
+
+            if (isWashDayRef.current) {
+                await apiFetch(`/api/washday/${result.id}/`, { method: "POST" });
+                setValidationResult({
+                    success: true,
+                    message: `Wash day logged for: ${result.fullName}`
+                });
+            } else {
+                setValidationResult({
+                    success: true,
+                    message: `Student ID validated: ${result.fullName}`
+                });
+                setStudent(result);
+            }
+        };
+
+        const tryScan = async () => {
+            if (isProcessingRef.current || studentRef.current) return;
+            isProcessingRef.current = true;
+
+            try {
+                if (detector) {
+                    const video = webcamRef.current?.video;
+                    if (video && video.readyState >= 2 && video.videoWidth) {
+                        try {
+                            const barcodes = await detector.detect(video);
+                            if (barcodes.length > 0) {
+                                const code = barcodes[0].rawValue;
+                                if (code && code !== lastDetectedRef.current) {
+                                    const lookupResp = await apiFetch(`/api/scan/qr-code/${code}/`, { method: "GET" });
+                                    if (lookupResp.ok) {
+                                        await handleResult(await lookupResp.json());
+                                    } else {
+                                        lastDetectedRef.current = code;
+                                        showError('QR code not found in database. Please check and try again.');
+                                    }
+                                }
+                                return;
+                            }
+                        } catch {}
+                    }
+                }
+
+                const imageSrc = webcamRef.current?.getScreenshot();
+                if (!imageSrc) return;
+
+                const byteCharacters = atob(imageSrc.split(",")[1]);
+                const byteNumbers = Array.from(byteCharacters, (char) => char.charCodeAt(0));
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: "image/jpeg" });
+
+                const formData = new FormData();
+                formData.append("image", blob, "snapshot.jpg");
+
+                const response = await apiFetch('/api/scan/qr', { method: "POST", body: formData });
+                if (response.ok) {
+                    await handleResult(await response.json());
+                } else {
+                    const result = await response.json().catch(() => ({}));
+                    if (result.error) {
+                        showError(result.error);
+                    }
+                }
+            } catch (err) {
+                console.error('Auto-scan error:', err);
+            } finally {
+                isProcessingRef.current = false;
+            }
+        };
+
+        const interval = setInterval(tryScan, 1200);
+        setIsAutoScanning(true);
+
+        return () => {
+            clearInterval(interval);
+            setIsAutoScanning(false);
+            if (errorTimeout) clearTimeout(errorTimeout);
+        };
+    }, []);
+
   return (
     <>
       {!student  ? (<div className={classes.scannerContainer}>
@@ -153,6 +265,12 @@ function ScanPage({setPage}) {
             <div className={`${classes.scannerCorner} ${classes.topRight}`} />
             <div className={`${classes.scannerCorner} ${classes.bottomLeft}`} />
             <div className={`${classes.scannerCorner} ${classes.bottomRight}`} />
+            {isAutoScanning && (
+              <div className={classes.autoScanIndicator}>
+                <span className={classes.autoScanDot} />
+                Auto-scan active
+              </div>
+            )}
             {isScanning && (
               <div className={classes.loadingOverlay}>
                 <Loader color="teal" size="lg" />
